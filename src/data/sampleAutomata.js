@@ -1,0 +1,46 @@
+export const sampleAutomata = [
+  {
+    id: 'basic-epsilon',
+    name: 'Basic Epsilon Example',
+    description: 'A simple automaton with an epsilon transition.',
+    states: ['q0', 'q1', 'q2'],
+    alphabet: ['0', '1'],
+    startState: 'q0',
+    acceptStates: ['q2'],
+    transitions: [
+      { from: 'q0', symbol: null, to: 'q1' },
+      { from: 'q1', symbol: '0', to: 'q1' },
+      { from: 'q1', symbol: '1', to: 'q2' },
+    ],
+  },
+  {
+    id: 'epsilon-cycle',
+    name: 'Epsilon Cycle',
+    description: 'Tests epsilon closures with a cycle and nondeterminism.',
+    states: ['q0', 'q1', 'q2', 'q3'],
+    alphabet: ['0', '1'],
+    startState: 'q0',
+    acceptStates: ['q3'],
+    transitions: [
+      { from: 'q0', symbol: null, to: 'q1' },
+      { from: 'q1', symbol: null, to: 'q0' },
+      { from: 'q0', symbol: '0', to: 'q1' },
+      { from: 'q0', symbol: '0', to: 'q2' },
+      { from: 'q1', symbol: '1', to: 'q3' },
+      { from: 'q2', symbol: '1', to: 'q3' },
+    ],
+  },
+  {
+    id: 'trap-state',
+    name: 'Trap State Example',
+    description: 'Produces an empty-subset state during conversion.',
+    states: ['q0', 'q1'],
+    alphabet: ['0', '1'],
+    startState: 'q0',
+    acceptStates: ['q1'],
+    transitions: [
+      { from: 'q0', symbol: '0', to: 'q1' },
+      { from: 'q1', symbol: '0', to: 'q1' },
+    ],
+  },
+];
