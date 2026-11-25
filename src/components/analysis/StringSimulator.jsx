@@ -8,16 +8,20 @@ export default function StringSimulator({ automaton }) {
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
 
-  async function runSimulation() {
+  async function runSimulation(overrideInput) {
     if (!automaton) return;
+    const targetInput =
+      typeof overrideInput === 'string' ? overrideInput : input;
     try {
       setError('');
-      const data = await fetchSimulateDFA(automaton, input);
+      const data = await fetchSimulateDFA(automaton, targetInput);
       setResult(data);
     } catch (err) {
       setError(err.message);
     }
   }
+
+  const quickExamples = ['', '1', '01', '001', '0', '1010', '2'];
 
   if (!automaton) {
     return (
@@ -75,6 +79,23 @@ export default function StringSimulator({ automaton }) {
         Alphabet: {automaton.alphabet.join(', ') || '(empty)'} · Leave the input
         blank to test the empty string.
       </p>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <span className="text-xs text-slate-500">Quick test:</span>
+        {quickExamples.map((sample) => (
+          <button
+            key={sample || 'empty'}
+            type="button"
+            onClick={() => {
+              setInput(sample);
+              runSimulation(sample);
+            }}
+            className="rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1 font-mono text-xs text-slate-300 transition hover:border-blue-400/40 hover:bg-white/[0.08] hover:text-white"
+          >
+            {sample === '' ? 'ε (empty)' : sample}
+          </button>
+        ))}
+      </div>
 
       {error && (
         <div className="mt-4 rounded-xl border border-red-400/20 bg-red-400/[0.06] p-3 text-sm text-red-300">

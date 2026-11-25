@@ -5,17 +5,20 @@ import {
   Check,
   RotateCcw,
   ArrowRight,
-  Info,
 } from 'lucide-react';
 import { sampleAutomata } from '../../data/sampleAutomata';
 
-const emptyAutomaton = {
-  states: ['q0', 'q1'],
-  alphabet: ['0', '1'],
-  startState: 'q0',
-  acceptStates: ['q1'],
-  transitions: [{ from: 'q0', symbol: '0', to: 'q1' }],
-};
+function toAutomatonData(sample) {
+  return {
+    states: [...sample.states],
+    alphabet: [...sample.alphabet],
+    startState: sample.startState,
+    acceptStates: [...sample.acceptStates],
+    transitions: sample.transitions.map((item) => ({ ...item })),
+  };
+}
+
+const emptyAutomaton = toAutomatonData(sampleAutomata[0]);
 
 export default function AutomatonForm({ onGenerate }) {
   const [automaton, setAutomaton] = useState(emptyAutomaton);
@@ -37,20 +40,15 @@ export default function AutomatonForm({ onGenerate }) {
     const sample = sampleAutomata.find((item) => item.id === id);
     if (!sample) return;
 
-    const { id: _id, name: _name, description: _description, ...data } = sample;
-    setAutomaton({
-      ...data,
-      states: [...data.states],
-      alphabet: [...data.alphabet],
-      acceptStates: [...data.acceptStates],
-      transitions: data.transitions.map((item) => ({ ...item })),
-    });
+    const data = toAutomatonData(sample);
+    setAutomaton(data);
     setTransition({
       from: data.states[0],
       symbol: 'ε',
       to: data.states[1] ?? data.states[0],
     });
     setError('');
+    onGenerate(toAutomatonData(sample));
   };
 
   const addState = () => {
@@ -445,12 +443,6 @@ export default function AutomatonForm({ onGenerate }) {
           Validate & continue
           <ArrowRight size={16} />
         </button>
-      </div>
-
-      <div className="flex gap-2 rounded-xl border border-blue-400/10 bg-blue-400/[0.04] p-3 text-xs leading-5 text-slate-400">
-        <Info size={16} className="mt-0.5 shrink-0 text-blue-400" />
-        This editor prepares the automaton data. We will connect it to the
-        actual conversion algorithm in the next steps.
       </div>
     </div>
   );

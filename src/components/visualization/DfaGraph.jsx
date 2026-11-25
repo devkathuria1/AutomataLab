@@ -4,7 +4,6 @@ import {
   ReactFlow,
   Background,
   Controls,
-  MiniMap,
   MarkerType,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -100,11 +99,12 @@ export default function DfaGraph({ automaton }) {
         </p>
       </div>
 
-      <div style={{ height: 480 }}>
+      <div style={{ height: 360 }}>
         <ReactFlow
           nodes={graph.nodes}
           edges={graph.edges}
           fitView
+          fitViewOptions={{ padding: 0.25 }}
           minZoom={0.2}
           maxZoom={2}
           nodesDraggable
@@ -112,15 +112,7 @@ export default function DfaGraph({ automaton }) {
           elementsSelectable
         >
           <Background color="#334155" gap={24} />
-          <Controls />
-          <MiniMap
-            nodeColor={(node) =>
-              dfa?.acceptStates.includes(node.id)
-                ? '#34d399'
-                : '#a78bfa'
-            }
-            maskColor="rgba(9, 13, 24, 0.7)"
-          />
+          <Controls className="!rounded-lg !border !border-white/10 !bg-[#0b1120] [&>button]:!border-white/10 [&>button]:!bg-[#0b1120] [&>button]:!fill-slate-200 [&>button:hover]:!bg-white/10" />
         </ReactFlow>
       </div>
     </section>
