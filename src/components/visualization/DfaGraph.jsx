@@ -1,5 +1,5 @@
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ReactFlow,
   Background,
@@ -8,13 +8,27 @@ import {
   MarkerType,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { subsetConstruction } from '../../algorithms/subsetConstruction.js';
+import { fetchSubsetConstruction } from '../../api/automataApi.js';
 
 export default function DfaGraph({ automaton }) {
-  const dfa = useMemo(
-    () => (automaton ? subsetConstruction(automaton) : null),
-    [automaton]
-  );
+  const [dfa, setDfa] = useState(null);
+
+  useEffect(() => {
+    if (!automaton) return;
+    let cancelled = false;
+
+    fetchSubsetConstruction(automaton)
+      .then((data) => {
+        if (!cancelled) setDfa(data);
+      })
+      .catch(() => {
+        if (!cancelled) setDfa(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [automaton]);
 
   const graph = useMemo(() => {
     if (!dfa) return { nodes: [], edges: [] };
@@ -101,7 +115,7 @@ export default function DfaGraph({ automaton }) {
           <Controls />
           <MiniMap
             nodeColor={(node) =>
-              dfa.acceptStates.includes(node.id)
+              dfa?.acceptStates.includes(node.id)
                 ? '#34d399'
                 : '#a78bfa'
             }

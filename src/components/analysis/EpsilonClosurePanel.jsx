@@ -1,8 +1,32 @@
 
-import { calculateAllClosures } from '../../algorithms/calculateAllClosures';
+import { useEffect, useState } from 'react';
+import { fetchAllClosures } from '../../api/automataApi';
 import { Workflow } from 'lucide-react';
 
 export default function EpsilonClosurePanel({ automaton }) {
+  const [closures, setClosures] = useState(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!automaton) return;
+    let cancelled = false;
+
+    fetchAllClosures(automaton)
+      .then((data) => {
+        if (!cancelled) {
+          setClosures(data);
+          setError('');
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.message);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [automaton]);
+
   if (!automaton) {
     return (
       <section className="rounded-2xl border border-white/10 bg-[#101625] p-6">
@@ -14,7 +38,21 @@ export default function EpsilonClosurePanel({ automaton }) {
     );
   }
 
-  const closures = calculateAllClosures(automaton);
+  if (error) {
+    return (
+      <section className="rounded-2xl border border-red-400/20 bg-[#101625] p-6 text-sm text-red-300">
+        {error}
+      </section>
+    );
+  }
+
+  if (!closures) {
+    return (
+      <section className="rounded-2xl border border-white/10 bg-[#101625] p-6 text-sm text-slate-400">
+        Calculating ε-closures in Python...
+      </section>
+    );
+  }
 
   return (
     <section className="rounded-2xl border border-white/10 bg-[#101625] p-5 sm:p-6">

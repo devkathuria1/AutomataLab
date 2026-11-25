@@ -1,15 +1,33 @@
 
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, RotateCcw, Workflow } from 'lucide-react';
-import { subsetConstructionSteps } from '../../algorithms/subsetConstructionSteps.js';
+import { fetchSubsetConstructionSteps } from '../../api/automataApi.js';
 
 export default function ConversionStepsPanel({ automaton }) {
   const [currentStep, setCurrentStep] = useState(0);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState('');
 
-  const result = useMemo(
-    () => (automaton ? subsetConstructionSteps(automaton) : null),
-    [automaton]
-  );
+  useEffect(() => {
+    if (!automaton) return;
+    let cancelled = false;
+
+    fetchSubsetConstructionSteps(automaton)
+      .then((data) => {
+        if (!cancelled) {
+          setResult(data);
+          setCurrentStep(0);
+          setError('');
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.message);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [automaton]);
 
   if (!automaton) {
     return (
@@ -18,6 +36,22 @@ export default function ConversionStepsPanel({ automaton }) {
         <p className="mt-2 text-sm text-slate-400">
           Validate an automaton to explore the conversion process.
         </p>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="rounded-2xl border border-red-400/20 bg-[#101625] p-6 text-sm text-red-300">
+        {error}
+      </section>
+    );
+  }
+
+  if (!result) {
+    return (
+      <section className="rounded-2xl border border-white/10 bg-[#101625] p-6 text-sm text-slate-400">
+        Generating conversion steps in Python...
       </section>
     );
   }

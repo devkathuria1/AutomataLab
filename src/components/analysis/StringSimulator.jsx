@@ -1,15 +1,22 @@
 
 import { useState } from 'react';
 import { Play, CheckCircle2, XCircle, Route } from 'lucide-react';
-import { simulateDFA } from '../../algorithms/simulateDFA.js';
+import { fetchSimulateDFA } from '../../api/automataApi.js';
 
 export default function StringSimulator({ automaton }) {
   const [input, setInput] = useState('');
   const [result, setResult] = useState(null);
+  const [error, setError] = useState('');
 
-  function runSimulation() {
+  async function runSimulation() {
     if (!automaton) return;
-    setResult(simulateDFA(automaton, input));
+    try {
+      setError('');
+      const data = await fetchSimulateDFA(automaton, input);
+      setResult(data);
+    } catch (err) {
+      setError(err.message);
+    }
   }
 
   if (!automaton) {
@@ -68,6 +75,12 @@ export default function StringSimulator({ automaton }) {
         Alphabet: {automaton.alphabet.join(', ') || '(empty)'} · Leave the input
         blank to test the empty string.
       </p>
+
+      {error && (
+        <div className="mt-4 rounded-xl border border-red-400/20 bg-red-400/[0.06] p-3 text-sm text-red-300">
+          {error}
+        </div>
+      )}
 
       {result && (
         <div className="mt-6 space-y-4">

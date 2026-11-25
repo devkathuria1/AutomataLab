@@ -1,8 +1,32 @@
 
+import { useEffect, useState } from 'react';
 import { GitBranch } from 'lucide-react';
-import { subsetConstruction } from '../../algorithms/subsetConstruction.js';
+import { fetchSubsetConstruction } from '../../api/automataApi.js';
 
 export default function DfaResultsPanel({ automaton }) {
+  const [dfa, setDfa] = useState(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!automaton) return;
+    let cancelled = false;
+
+    fetchSubsetConstruction(automaton)
+      .then((data) => {
+        if (!cancelled) {
+          setDfa(data);
+          setError('');
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.message);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [automaton]);
+
   if (!automaton) {
     return (
       <section className="rounded-2xl border border-white/10 bg-[#101625] p-6">
@@ -14,7 +38,21 @@ export default function DfaResultsPanel({ automaton }) {
     );
   }
 
-  const dfa = subsetConstruction(automaton);
+  if (error) {
+    return (
+      <section className="rounded-2xl border border-red-400/20 bg-[#101625] p-6 text-sm text-red-300">
+        {error}
+      </section>
+    );
+  }
+
+  if (!dfa) {
+    return (
+      <section className="rounded-2xl border border-white/10 bg-[#101625] p-6 text-sm text-slate-400">
+        Running subset construction in Python...
+      </section>
+    );
+  }
 
   return (
     <section className="rounded-2xl border border-white/10 bg-[#101625] p-5 sm:p-6">
