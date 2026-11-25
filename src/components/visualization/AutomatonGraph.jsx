@@ -1,83 +1,69 @@
-
 import { useMemo } from 'react';
-import {
-  ReactFlow,
-  Background,
-  Controls,
-  MarkerType,
-} from '@xyflow/react';
+import { ReactFlow, Background, Controls } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import AutomatonEdge from './AutomatonEdge';
+import AutomatonNode from './AutomatonNode';
+import { buildGroupedEdges, getEllipsePosition } from './graphUtils';
+
+const nodeTypes = { automaton: AutomatonNode };
+const edgeTypes = { automaton: AutomatonEdge };
+
+const NODE_WIDTH = 84;
+const NODE_HEIGHT = 84;
 
 function buildGraph(automaton) {
+  const total = automaton.states.length;
+  const rx = Math.max(165, total * 45);
+  const ry = Math.max(115, total * 30);
+
   const nodes = automaton.states.map((state, index) => {
     const isStart = state === automaton.startState;
     const isAccept = automaton.acceptStates.includes(state);
 
     return {
       id: state,
-      position: {
-        x: 100 + (index % 3) * 210,
-        y: 100 + Math.floor(index / 3) * 150,
-      },
+      type: 'automaton',
+      position: getEllipsePosition(index, total, rx, ry),
       data: {
         label: `${isStart ? '→ ' : ''}${state}`,
-      },
-      style: {
-        width: 90,
-        height: 90,
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: isAccept ? '#123b32' : '#172554',
-        color: '#f8fafc',
-        border: isAccept
-          ? '4px double #34d399'
-          : isStart
-            ? '2px solid #60a5fa'
-            : '1px solid #64748b',
-        fontSize: 16,
-        fontWeight: 600,
+        isStart,
+        isAccept,
+        width: NODE_WIDTH,
+        height: NODE_HEIGHT,
       },
     };
   });
 
-  const edges = automaton.transitions.map((transition, index) => ({
-    id: `edge-${index}`,
-    source: transition.from,
-    target: transition.to,
-    label: transition.symbol ?? 'ε',
-    type: 'smoothstep',
-    markerEnd: { type: MarkerType.ArrowClosed },
-    style: { stroke: '#93a4c7', strokeWidth: 2 },
-    labelStyle: { fill: '#e2e8f0', fontWeight: 600 },
-    labelBgStyle: { fill: '#101625' },
-  }));
-
+  const edges = buildGroupedEdges(
+    automaton.transitions,
+    'edge',
+    '#93a4c7',
+    NODE_WIDTH,
+    NODE_HEIGHT
+  );
   return { nodes, edges };
 }
 
 export default function AutomatonGraph({ automaton }) {
-  const graph = useMemo(
-    () => buildGraph(automaton),
-    [automaton]
-  );
+  const graph = useMemo(() => buildGraph(automaton), [automaton]);
 
   return (
     <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#101625]">
-      <div className="border-b border-white/10 p-5">
-        <h3 className="text-lg font-semibold">Automaton Graph</h3>
-        <p className="mt-1 text-sm text-slate-400">
-          Drag nodes to rearrange them; zoom and pan to explore.
+      <div className="border-b border-white/10 p-4">
+        <h3 className="text-base font-semibold">Automaton Graph (ε-NFA)</h3>
+        <p className="mt-0.5 text-xs text-slate-400">
+          Drag nodes to rearrange; scroll to zoom and pan.
         </p>
       </div>
 
-      <div style={{ height: 360 }}>
+      <div style={{ height: 380 }}>
         <ReactFlow
           nodes={graph.nodes}
           edges={graph.edges}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
           fitView
-          fitViewOptions={{ padding: 0.25 }}
+          fitViewOptions={{ padding: 0.3 }}
           minZoom={0.2}
           maxZoom={2}
           nodesDraggable
